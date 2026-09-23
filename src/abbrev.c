@@ -16,14 +16,18 @@ static size_t count_entries(
         uint8_t *abbrev_table = abbrev_section.data + offset;
         size_t   abbrev_off = 0;
         while(abbrev_table[abbrev_off] != 0) {
-                abbrev_off += uleb128_size(abbrev_table + abbrev_off);
-                abbrev_off += uleb128_size(abbrev_table + abbrev_off);
+                abbrev_off += leb128_size(abbrev_table + abbrev_off);
+                abbrev_off += leb128_size(abbrev_table + abbrev_off);
                 abbrev_off += 1; // has children byte
 
                 uleb128 name, form;
+                sleb128 implicit_const;
                 do {
                         abbrev_off += uleb128_decode(abbrev_table + abbrev_off, &name);
                         abbrev_off += uleb128_decode(abbrev_table + abbrev_off, &form);
+                        if(form == DW_FORM_implicit_const) {
+                                abbrev_off += sleb128_decode(abbrev_table + abbrev_off, &implicit_const);
+                        }
                 } while(name != 0x00 || form != 0x00);
                 ++count;
         }
@@ -34,14 +38,47 @@ static size_t count_attributes(uint8_t *abbrev_table, size_t abbrev_off)
 {
         size_t count = 0;
         uleb128 name, form;
+        sleb128 implicit_const;
         do {
                 abbrev_off += uleb128_decode(abbrev_table + abbrev_off, &name);
                 abbrev_off += uleb128_decode(abbrev_table + abbrev_off, &form);
+                if(form == DW_FORM_implicit_const) {
+                        abbrev_off += sleb128_decode(abbrev_table + abbrev_off, &implicit_const);
+                }
                 if(name != 0x00 && form != 0x00) {
                         ++count;
                 }
         } while(name != 0x00 || form != 0x00);
         return count;
+}
+
+static void dump_abbrev_table(struct abbrev_table_t *table)
+{
+        for(size_t i = 0; i < table->count; ++i) {
+                struct abbrev_entry_t *entry = &table->entries[i];
+                printf(" * [0x%02lx]: tag: %s (0x%02lx) %s:\n", entry->index
+                                , get_str_tag_encoding(entry->tag)
+                                , entry->tag
+                                , (entry->children == 0x00) ? "no children" : "children");
+                for(size_t j = 0; j < entry->attr_count; ++j) {
+                        uint64_t name = entry->attrs[j].name;
+                        uint64_t form = entry->attrs[j].form;
+                        int64_t  implicit_const = entry->attrs[j].implicit_const;
+                        printf("     - %s (0x%02lx) : %s (0x%02lx) [%s] "
+                                        , get_str_attribute_encoding(name)
+                                        , name
+                                        , get_str_attribute_form_encoding(form)
+                                        , form
+                                        , get_str_attribute_form_class(
+                                                get_mapping_form_class(form))
+                                        );
+
+                        if(form == DW_FORM_implicit_const) {
+                                printf("[%ld] ", implicit_const);
+                        }
+                        printf("\n");
+                }
+        }
 }
 
 bool abbrev_table_create(
@@ -72,37 +109,27 @@ bool abbrev_table_create(
 
                 size_t j = 0;
                 uleb128 name = 0, form = 0;
+                sleb128 implicit_const = 0;
                 do {
                         abbrev_off += uleb128_decode(abbrev_table + abbrev_off, &name);
                         abbrev_off += uleb128_decode(abbrev_table + abbrev_off, &form);
+                        if(form == DW_FORM_implicit_const) {
+                                abbrev_off += sleb128_decode(abbrev_table + abbrev_off, &implicit_const);
+                        }
                         if(name != 0 && form != 0) {
                                 entry->attrs[j].name = name;
                                 entry->attrs[j].form = form;
+                                entry->attrs[j].implicit_const = implicit_const;
                                 ++j;
                         }
                 } while(name != 0x00 || form != 0x00);
                 ++i;
         }
 
-        for(size_t i = 0; i < t.count; ++i) {
-                struct abbrev_entry_t *entry = &t.entries[i];
-                printf(" * [0x%02lx]: tag: %s (0x%02lx) %s:\n", entry->index
-                                , get_str_tag_encoding(entry->tag)
-                                , entry->tag
-                                , (entry->children == 0x00) ? "no children" : "children");
-                for(size_t j = 0; j < entry->attr_count; ++j) {
-                        uint64_t name = entry->attrs[j].name;
-                        uint64_t form = entry->attrs[j].form;
-                        printf("     - %s (0x%02lx) : %s (0x%02lx)\n"
-                                        , get_str_attribute_encoding(name)
-                                        , name
-                                        , get_str_attribute_form_encoding(form)
-                                        , form);
-                }
-        }
+        //dump_abbrev_table(&t);
 
         *table = t;
-        return false;
+        return true;
 }
 
 struct abbrev_entry_t *abbrev_table_get(

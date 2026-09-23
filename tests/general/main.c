@@ -68,7 +68,7 @@ bool parse_elf_sections(struct dwarf_sections_t *sections, void *elf)
                                 fprintf(stderr, "duplicated section .debug_info\n");
                                 return false;
                         }
-                        hex_dump(elf + shdr[i].sh_offset, shdr[i].sh_size);
+                        //hex_dump(elf + shdr[i].sh_offset, shdr[i].sh_size);
                         sections->info.data = (uint8_t*)(elf + shdr[i].sh_offset);
                         sections->info.size = shdr[i].sh_size;
                 } else if(strcmp(name, ".debug_abbrev") == 0) {

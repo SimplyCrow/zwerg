@@ -1,5 +1,6 @@
 TEST_SRCS := main.c
 TEST_OBJS := $(patsubst %.c,%.o,$(TEST_SRCS))
+TEST_DEPS := $(patsubst %.c,%.d,$(TEST_SRCS))
 
 test: $(TEST_OBJS) $(DWARF_LIB_ARCHIVE)
 	$(CC) $(CFLAGS) -o $@ $^
@@ -14,4 +15,6 @@ run: test
 .PHONY: clean
 clean:
 	rm -f *.o
-	rm test
+	rm -f test
+
+-include $(TEST_DEPS)

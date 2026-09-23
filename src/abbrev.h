@@ -10,13 +10,14 @@
 struct abbrev_attr_t {
         uint64_t name;
         uint64_t form;
+        int64_t  implicit_const;
 };
 
 struct abbrev_entry_t {
         uint64_t index;
         uint64_t tag;
-        bool    children;
-        size_t  attr_count;
+        bool     children;
+        size_t   attr_count;
         struct abbrev_attr_t *attrs;
 };
 

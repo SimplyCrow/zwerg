@@ -1,10 +1,11 @@
 export CC := gcc
-export CFLAGS := -Wall -Wextra -g -I$(realpath ./include)
+export CFLAGS := -Wall -Wextra -MMD -MP -g -I$(realpath ./include)
 
-export DWARF_LIB_ARCHIVE = $(realpath libdwarf.a)
+export DWARF_LIB_ARCHIVE = $(shell realpath libdwarf.a)
 
-LIB_SRCS := dwarf.c abbrev.c string_tables.c
+LIB_SRCS := dwarf.c abbrev.c string_tables.c encoding.c
 LIB_OBJS := $(patsubst %.c,./src/%.o,$(LIB_SRCS))
+LIB_DEPS := $(patsubst %.c,./src/%.d,$(LIB_SRCS))
 
 libdwarf.a: $(LIB_OBJS)
 	ar -rs $@ $^
@@ -20,6 +21,8 @@ run-tests: tests libdwarf.a
 
 .PHONY: clean
 clean:
-	rm -f *.o
+	rm -f ./src/*.o
 	rm $(DWARF_LIB_ARCHIVE)
 	$(MAKE) --no-print-directory -C ./tests/general clean
+
+-include $(LIB_DEPS)

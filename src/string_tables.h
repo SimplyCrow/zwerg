@@ -3,8 +3,11 @@
 
 #include <stdint.h>
 
-const char *get_str_tag_encoding(uint64_t tag);
-const char *get_str_attribute_encoding(uint64_t attribute);
-const char *get_str_attribute_form_encoding(uint64_t form);
+#include "encoding.h"
+
+const char *get_str_tag_encoding(int tag);
+const char *get_str_attribute_encoding(int attribute);
+const char *get_str_attribute_form_class(int class);
+const char *get_str_attribute_form_encoding(int form);
 
 #endif // LIBDWARF_STRING_TABLES_H
