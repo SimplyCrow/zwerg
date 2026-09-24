@@ -78,7 +78,7 @@ bool abbrev_table_create(
         assert(offset <= abbrev_section.size);
 
         struct bstream_t stream;
-        bstream_init(&stream, abbrev_section.data, abbrev_section.size);
+        bstream_init(&stream, abbrev_section.data + offset, abbrev_section.size);
 
         int error = setjmp(stream.err_return);
         if(error != 0) {

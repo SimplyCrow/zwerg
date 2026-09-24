@@ -15,9 +15,16 @@
 
 static void bstream_trap_on_out_of_bounds(struct bstream_t *stream, size_t bytes)
 {
-        if(bytes > stream->length || stream->pos > stream->length - bytes) {
-                bstream_trap(stream, "Tried to access data beyond range");
+        const bool out_of_bounds = bytes > stream->length || stream->pos > stream->length - bytes;
+        if(!out_of_bounds) {
+                return;
         }
+
+        // TODO: fix leak with ownership
+        const size_t debug_msg_size = 256;
+        char *msg = malloc(256);
+        snprintf(msg, debug_msg_size, "OUT_OF_BOUNDS Tried to get %zu bytes", bytes);
+        bstream_trap(stream, msg);
 }
 
 static size_t bstream_check_leb128_with_trap(struct bstream_t *stream)
@@ -60,6 +67,20 @@ void bstream_set_pos(struct bstream_t *stream, size_t new_pos)
         stream->pos = new_pos;
 }
 
+size_t bstream_left(struct bstream_t *stream)
+{
+        return stream->length - stream->pos;
+}
+
+size_t bstream_trim_front(struct bstream_t *stream)
+{
+        const size_t trim = stream->pos;
+        stream->data   += trim;
+        stream->length -= trim;
+        stream->pos = 0;
+        return trim;
+}
+
 [[noreturn]] void bstream_trap(struct bstream_t *stream, const char *error_message)
 {
         stream->err_message = error_message;
@@ -67,10 +88,12 @@ void bstream_set_pos(struct bstream_t *stream, size_t new_pos)
         panic_exited_trap();
 }
 
-void bstream_advance(struct bstream_t *stream, size_t bytes)
+uint8_t *bstream_advance(struct bstream_t *stream, size_t bytes)
 {
         bstream_trap_on_out_of_bounds(stream, bytes);
+        uint8_t *p = bstream_current_pointer(stream);
         stream->pos += bytes;
+        return p;
 }
 
 uint8_t bstream_peek_u8(struct bstream_t *stream)

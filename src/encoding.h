@@ -3,6 +3,17 @@
 
 #include <stdint.h>
 
+enum dwarf_unit_hdr_type {
+        DW_UT_compile = 0x01,
+        DW_UT_type = 0x02,
+        DW_UT_partial = 0x03,
+        DW_UT_skeleton = 0x04,
+        DW_UT_split_compile = 0x05,
+        DW_UT_split_type = 0x06,
+        DW_UT_lo_user = 0x80,
+        DW_UT_high_user = 0xff,
+};
+
 enum dwarf_tag {
         DW_TAG_array_type = 0x0001,
         DW_TAG_class_type = 0x0002,
