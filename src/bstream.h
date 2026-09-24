@@ -14,7 +14,12 @@ struct bstream_t {
 };
 
 bool bstream_init(struct bstream_t *stream, uint8_t *data, size_t length);
+
+size_t bstream_tell(struct bstream_t *stream);
+void   bstream_set_pos(struct bstream_t *stream, size_t new_pos);
+
 [[noreturn]] void bstream_trap(struct bstream_t *stream, const char *error_message);
+
 void bstream_advance(struct bstream_t *stream, size_t bytes);
 
 uint8_t  bstream_peek_u8(struct bstream_t *stream);

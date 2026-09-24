@@ -1,5 +1,5 @@
 export CC := gcc
-export CFLAGS := -Wall -Wextra -MMD -MP -g -I$(realpath ./include)
+export CFLAGS := -Wall -Wextra -MMD -MP -g -gdwarf-5 -gstrict-dwarf -I$(realpath ./include)
 
 export DWARF_LIB_ARCHIVE = $(shell realpath libdwarf.a)
 

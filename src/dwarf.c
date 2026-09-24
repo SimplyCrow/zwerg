@@ -367,20 +367,5 @@ struct dwarf_context_t *dwarf_init_context(struct dwarf_sections_t sections)
 
         parse(&context);
 
-
-        //uint8_t *entries_start = (uint8_t*)(sections.info.data + sizeof(struct unit_header32_t));
-        //uint8_t *abbrev_start = (uint8_t*)(sections.abbrev.data);
-
-        //size_t   used_bytes = 0;
-        //uint64_t tag_encoding = 0x00;
-        //used_bytes += uleb128_decode(entries_start, &tag_encoding);
-
-        //printf("Abbrv offset: 0x%02lx (%zu)\n", tag_encoding, used_bytes);
-
-        //size_t   used_bytes_abbrev = 0;
-        //uint64_t abbrev_index = 0x00;
-        //used_bytes_abbrev += uleb128_decode(abbrev_start + used_bytes_abbrev + tag_encoding, &abbrev_index);
-        //printf("Stored: 0x%02lx\n", abbrev_index);
-
         return NULL;
 }

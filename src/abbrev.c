@@ -6,57 +6,14 @@
 #include <stdlib.h>
 
 #include "string_tables.h"
-
-static size_t count_entries(
-                struct dwarf_buffer_t  abbrev_section,
-                size_t offset
-)
-{
-        size_t   count = 0;
-        uint8_t *abbrev_table = abbrev_section.data + offset;
-        size_t   abbrev_off = 0;
-        while(abbrev_table[abbrev_off] != 0) {
-                abbrev_off += leb128_size(abbrev_table + abbrev_off);
-                abbrev_off += leb128_size(abbrev_table + abbrev_off);
-                abbrev_off += 1; // has children byte
-
-                uleb128 name, form;
-                sleb128 implicit_const;
-                do {
-                        abbrev_off += uleb128_decode(abbrev_table + abbrev_off, &name);
-                        abbrev_off += uleb128_decode(abbrev_table + abbrev_off, &form);
-                        if(form == DW_FORM_implicit_const) {
-                                abbrev_off += sleb128_decode(abbrev_table + abbrev_off, &implicit_const);
-                        }
-                } while(name != 0x00 || form != 0x00);
-                ++count;
-        }
-        return count;
-}
-
-static size_t count_attributes(uint8_t *abbrev_table, size_t abbrev_off)
-{
-        size_t count = 0;
-        uleb128 name, form;
-        sleb128 implicit_const;
-        do {
-                abbrev_off += uleb128_decode(abbrev_table + abbrev_off, &name);
-                abbrev_off += uleb128_decode(abbrev_table + abbrev_off, &form);
-                if(form == DW_FORM_implicit_const) {
-                        abbrev_off += sleb128_decode(abbrev_table + abbrev_off, &implicit_const);
-                }
-                if(name != 0x00 && form != 0x00) {
-                        ++count;
-                }
-        } while(name != 0x00 || form != 0x00);
-        return count;
-}
+#include "bstream.h"
 
 static void dump_abbrev_table(struct abbrev_table_t *table)
 {
+        printf("Abbreviation table (%zu):\n", table->count);
         for(size_t i = 0; i < table->count; ++i) {
                 struct abbrev_entry_t *entry = &table->entries[i];
-                printf(" * [0x%02lx]: tag: %s (0x%02lx) %s:\n", entry->index
+                printf(" * DAT [0x%02lx]: tag: %s (0x%02lx) %s:\n", entry->index
                                 , get_str_tag_encoding(entry->tag)
                                 , entry->tag
                                 , (entry->children == 0x00) ? "no children" : "children");
@@ -81,6 +38,36 @@ static void dump_abbrev_table(struct abbrev_table_t *table)
         }
 }
 
+static size_t count_attributes(struct bstream_t *stream)
+{
+        size_t   count = 0;
+        uint64_t name, form;
+        do {
+                name = bstream_uleb128(stream);
+                form = bstream_uleb128(stream);
+                if(form == DW_FORM_implicit_const) {
+                        bstream_sleb128(stream); // implicit const
+                }
+                ++count;
+        } while(name != 0x00 || form != 0x00);
+        return count - 1; // off by one because of the end mark
+}
+
+static size_t count_entries(struct bstream_t *stream)
+{
+        size_t count = 0;
+        while(bstream_peek_u8(stream)) {
+                bstream_uleb128(stream); // index
+                bstream_uleb128(stream); // tag
+                bstream_u8(stream);      // children
+
+                count_attributes(stream);
+
+                ++count;
+        }
+        return count;
+}
+
 bool abbrev_table_create(
                 struct abbrev_table_t *table,
                 struct dwarf_buffer_t  abbrev_section,
@@ -90,31 +77,50 @@ bool abbrev_table_create(
         assert(table);
         assert(offset <= abbrev_section.size);
 
+        struct bstream_t stream;
+        bstream_init(&stream, abbrev_section.data, abbrev_section.size);
+
+        int error = setjmp(stream.err_return);
+        if(error != 0) {
+                fprintf(stderr, "[ERROR] [AT 0x%lx (%zu)] [SIZE 0x%lx (%zu)] Could not parse abbreviation table %d: %s\n"
+                                , stream.pos, stream.pos
+                                , stream.length, stream.length
+                                , error,
+                                stream.err_message ? stream.err_message : "NO ERROR MESSAGE");
+                return false;
+        }
+
+
         struct abbrev_table_t t = {0};
-        t.count = count_entries(abbrev_section, offset);
+
+        const size_t pos = bstream_tell(&stream);
+        t.count = count_entries(&stream);
+        bstream_set_pos(&stream, pos);
+
         t.entries = malloc(t.count * sizeof(*t.entries));
         printf("Found %zu abbreviation entries\n", t.count);
 
-        uint8_t *abbrev_table = abbrev_section.data + offset;
-        size_t   abbrev_off = 0;
         size_t   i = 0;
-        while(abbrev_table[abbrev_off] != 0) {
+        while(bstream_peek_u8(&stream)) {
                 struct abbrev_entry_t *entry = &t.entries[i];
-                abbrev_off += uleb128_decode(abbrev_table + abbrev_off, &entry->index);
-                abbrev_off += uleb128_decode(abbrev_table + abbrev_off, &entry->tag);
-                entry->children = (abbrev_table[abbrev_off++] == 0x01);
+                entry->index    = bstream_uleb128(&stream);
+                entry->tag      = bstream_uleb128(&stream);
+                entry->children = (bstream_u8(&stream) == 0x01);
 
-                entry->attr_count = count_attributes(abbrev_table, abbrev_off);
-                entry->attrs = malloc(entry->attr_count * sizeof(*entry->attrs));
+                const size_t pos = bstream_tell(&stream);
+                entry->attr_count = count_attributes(&stream);
+                bstream_set_pos(&stream, pos);
+
+                entry->attrs      = malloc(entry->attr_count * sizeof(*entry->attrs));
 
                 size_t j = 0;
-                uleb128 name = 0, form = 0;
-                sleb128 implicit_const = 0;
+                uint64_t name = 0, form = 0;
+                int64_t  implicit_const = 0;
                 do {
-                        abbrev_off += uleb128_decode(abbrev_table + abbrev_off, &name);
-                        abbrev_off += uleb128_decode(abbrev_table + abbrev_off, &form);
+                        name = bstream_uleb128(&stream);
+                        form = bstream_uleb128(&stream);
                         if(form == DW_FORM_implicit_const) {
-                                abbrev_off += sleb128_decode(abbrev_table + abbrev_off, &implicit_const);
+                                implicit_const = bstream_sleb128(&stream);
                         }
                         if(name != 0 && form != 0) {
                                 entry->attrs[j].name = name;

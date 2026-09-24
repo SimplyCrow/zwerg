@@ -29,8 +29,7 @@ static const struct string_mapping TAG_ENCODINGS[] = {
         {DW_TAG_typedef, "DW_TAG_typedef"},
         {DW_TAG_union_type, "DW_TAG_union_type"},
         {DW_TAG_unspecified_parameters, "DW_TAG_unspecified_parameters"},
-        {DW_TAG_variant, "DW_TAG_variant"},
-        {DW_TAG_common_block, "DW_TAG_common_block"},
+        {DW_TAG_variant, "DW_TAG_variant"}, {DW_TAG_common_block, "DW_TAG_common_block"},
         {DW_TAG_common_inclusion, "DW_TAG_common_inclusion"},
         {DW_TAG_inheritance, "DW_TAG_inheritance"},
         {DW_TAG_inlined_subroutine, "DW_TAG_inlined_subroutine"},
@@ -276,9 +275,14 @@ static const struct string_mapping ATTRIBUTE_FORM_ENCODINGS[] = {
 
 static const char* get_mapping_string(const struct string_mapping *map, size_t size, int key)
 {
+        if(size == 0) {
+                return "(UNKNOWN)";
+        }
+
         size_t low = 0;
-        size_t high = size - 1;
-        while(low <= high) {
+        size_t high = size;
+
+        while(low < high) {
                 size_t mid = low + (high - low) / 2;
 
                 if(map[mid].key == key) {
@@ -288,9 +292,10 @@ static const char* get_mapping_string(const struct string_mapping *map, size_t s
                 if(map[mid].key < key) {
                         low  = mid + 1;
                 } else {
-                        high = mid - 1;
+                        high = mid;
                 }
         }
+
         return "(UNKNOWN)";
 }
 

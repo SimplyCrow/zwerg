@@ -4,6 +4,9 @@
 
 #define ARRAY_SIZE(ar) (sizeof(ar) / sizeof(*ar))
 
+// TODO: handle vendor specific ranges
+
+
 /*
  * Note on DWARF 32 bit and 64 bit:
  * Section offsets (DW_FORM_strp, DW_FORM_ref_addr, DW_FORM_sec_offset,
@@ -60,9 +63,14 @@ static const struct dwarf_attribute_form_info_mapping FORM_CLASS_MAPPING[] = {
 struct dwarf_attribute_form_info_mapping
 get_mapping_form_info(enum dwarf_attribute_form form)
 {
+        if(ARRAY_SIZE(FORM_CLASS_MAPPING) == 0) {
+                return FORM_CLASS_MAPPING[0];
+        }
+
         size_t low = 0;
-        size_t high = ARRAY_SIZE(FORM_CLASS_MAPPING) - 1;
-        while(low <= high) {
+        size_t high = ARRAY_SIZE(FORM_CLASS_MAPPING);
+
+        while(low < high) {
                 size_t mid = low + (high - low) / 2;
 
                 if(FORM_CLASS_MAPPING[mid].form == form) {
@@ -72,9 +80,10 @@ get_mapping_form_info(enum dwarf_attribute_form form)
                 if(FORM_CLASS_MAPPING[mid].form < form) {
                         low  = mid + 1;
                 } else {
-                        high = mid - 1;
+                        high = mid;
                 }
         }
+
         return FORM_CLASS_MAPPING[0];
 }
 
