@@ -378,10 +378,20 @@ bool parse(struct dwarf_sections_t sections)
 
         const size_t info_size = sections.info.size;
         bstream_init(&context.sdies, sections.info.data, info_size);
-
         size_t info_size_used = 0;
 
         while((info_size_used < info_size) && (info_size - info_size_used)) {
+                int error = setjmp(context.sdies.err_return);
+                if(error != 0) {
+                        fflush(stdout);
+                        fflush(stderr);
+                        fprintf(stderr, "\n[ERROR] [AT 0x%lx (%zu)] [LEN 0x%lx (%zu)] Could not parse contribution header: %s\n"
+                                        , context.sdies.pos, context.sdies.pos
+                                        , context.sdies.length, context.sdies.length
+                                        , context.sdies.err_message ? context.sdies.err_message : "NO ERROR MESSAGE");
+                        return false;
+                }
+
                 printf("DEB: 0x%lx\n", context.sdies.data - sections.info.data + context.sdies.pos);
                 context.sdies.length = 4;
                 const uint32_t initial_unit_length = bstream_u32(&context.sdies);
