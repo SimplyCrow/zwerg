@@ -10,7 +10,7 @@ struct bstream_t {
         size_t length;
         size_t pos;
         jmp_buf    err_return;
-        const char *err_message;
+        char *err_message;
 };
 
 bool bstream_init(struct bstream_t *stream, uint8_t *data, size_t length);
@@ -21,7 +21,7 @@ size_t   bstream_left(struct bstream_t *stream);
 
 size_t bstream_trim_front(struct bstream_t *stream);
 
-[[noreturn]] void bstream_trap(struct bstream_t *stream, const char *error_message);
+[[noreturn]] void bstream_trap(struct bstream_t *stream, const char *error_fmt, ...);
 
 uint8_t *bstream_advance(struct bstream_t *stream, size_t bytes);
 

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <setjmp.h>
+#include <stdarg.h>
 
 #include "leb128.h"
 
@@ -19,12 +20,7 @@ static void bstream_trap_on_out_of_bounds(struct bstream_t *stream, size_t bytes
         if(!out_of_bounds) {
                 return;
         }
-
-        // TODO: fix leak with ownership
-        const size_t debug_msg_size = 256;
-        char *msg = malloc(256);
-        snprintf(msg, debug_msg_size, "OUT_OF_BOUNDS Tried to get %zu bytes", bytes);
-        bstream_trap(stream, msg);
+        bstream_trap(stream, "OUT_OF_BOUNDS Tried to get %zu bytes", bytes);
 }
 
 static size_t bstream_check_leb128_with_trap(struct bstream_t *stream)
@@ -81,9 +77,19 @@ size_t bstream_trim_front(struct bstream_t *stream)
         return trim;
 }
 
-[[noreturn]] void bstream_trap(struct bstream_t *stream, const char *error_message)
+[[noreturn]] void bstream_trap(struct bstream_t *stream, const char *error_fmt, ...)
 {
-        stream->err_message = error_message;
+        // TODO: Memory leak
+        va_list params_length, params_format;
+        va_start(params_length, error_fmt);
+        va_copy(params_format, params_length);
+
+        size_t length = 1 + vsnprintf(NULL, 0, error_fmt, params_length);
+        stream->err_message = realloc(stream->err_message, length);
+        vsnprintf(stream->err_message, length, error_fmt, params_format);
+        va_end(params_length);
+        va_end(params_format);
+
         longjmp(stream->err_return, 1);
         panic_exited_trap();
 }
