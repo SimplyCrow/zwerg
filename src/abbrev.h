@@ -26,8 +26,14 @@ struct abbrev_table_t {
         struct abbrev_entry_t *entries;
 };
 
-bool abbrev_table_create(
-                struct abbrev_table_t *table,
+struct abbrev_context_ent_t {
+        size_t offset;
+        struct abbrev_table_t table;
+        struct abbrev_context_ent_t *next;
+};
+
+struct abbrev_table_t *
+abbrev_table_create(
                 struct dwarf_buffer_t  abbrev_section,
                 size_t offset
 );

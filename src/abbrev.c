@@ -8,6 +8,9 @@
 #include "string_tables.h"
 #include "bstream.h"
 
+static struct abbrev_context_ent_t *ABBREV_TABLE_HEAD = NULL;
+static struct abbrev_context_ent_t *ABBREV_TABLE_TAIL = NULL;
+
 static void dump_abbrev_table(struct abbrev_table_t *table)
 {
         printf("Abbreviation table (%zu):\n", table->count);
@@ -68,14 +71,26 @@ static size_t count_entries(struct bstream_t *stream)
         return count;
 }
 
-bool abbrev_table_create(
-                struct abbrev_table_t *table,
+struct abbrev_table_t *
+abbrev_table_create(
                 struct dwarf_buffer_t  abbrev_section,
                 size_t offset
 )
 {
-        assert(table);
         assert(offset <= abbrev_section.size);
+
+        printf("\n Tried to get offset %zu\n", offset);
+        if(ABBREV_TABLE_HEAD) {
+                for(struct abbrev_context_ent_t *p = ABBREV_TABLE_HEAD
+                                ; p != NULL
+                                ; p = p->next)
+                {
+                        if(p->offset == offset) {
+                                printf("\nFound cached offset %zu\n", offset);
+                                return &p->table;
+                        }
+                }
+        }
 
         struct bstream_t stream;
         bstream_init(&stream, abbrev_section.data + offset, abbrev_section.size);
@@ -87,7 +102,7 @@ bool abbrev_table_create(
                                 , stream.length, stream.length
                                 , error,
                                 stream.err_message ? stream.err_message : "NO ERROR MESSAGE");
-                return false;
+                return NULL;
         }
 
 
@@ -134,8 +149,20 @@ bool abbrev_table_create(
 
         //dump_abbrev_table(&t);
 
-        *table = t;
-        return true;
+        if (ABBREV_TABLE_HEAD == NULL) {
+                ABBREV_TABLE_HEAD = malloc(sizeof(*ABBREV_TABLE_HEAD));
+                ABBREV_TABLE_TAIL = ABBREV_TABLE_HEAD;
+                ABBREV_TABLE_HEAD->next = NULL;
+        } else {
+                void *t = ABBREV_TABLE_HEAD;
+                ABBREV_TABLE_HEAD = malloc(sizeof(*ABBREV_TABLE_HEAD));
+                ABBREV_TABLE_HEAD->next = t;
+        }
+
+        ABBREV_TABLE_HEAD->table = t;
+        ABBREV_TABLE_HEAD->offset = offset;
+
+        return &ABBREV_TABLE_HEAD->table;
 }
 
 struct abbrev_entry_t *abbrev_table_get(

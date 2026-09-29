@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+typedef uint64_t did_t;
+
 struct dwarf_buffer_t {
         uint8_t *data;
         size_t   size;

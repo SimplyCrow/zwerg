@@ -117,7 +117,7 @@ struct unit_header_t {
 
 struct dwarf_context_t {
         struct dwarf_sections_t sections;
-        struct abbrev_table_t   abbrev_table;
+        struct abbrev_table_t  *abbrev_table;
 
         size_t  current_level;
         uint8_t offset_size;
@@ -311,7 +311,7 @@ static void parse_die(struct dwarf_context_t *context)
 
         uint64_t abbrev_index = bstream_uleb128(&context->sdies);
         printf("abbrev_index = %lx\n", abbrev_index);
-        struct abbrev_entry_t *abbrev = abbrev_table_get(&context->abbrev_table, abbrev_index);
+        struct abbrev_entry_t *abbrev = abbrev_table_get(context->abbrev_table, abbrev_index);
         if(abbrev == NULL) {
                 fprintf(stderr, "Did not find abbrev at index %zu\n", (size_t)abbrev_index);
                 bstream_trap(&context->sdies, "Did not find abbrev");
@@ -429,7 +429,7 @@ bool parse(struct dwarf_sections_t sections)
                         return false;
                 }
 
-                if(!abbrev_table_create(&context.abbrev_table, sections.abbrev, abbrev_offset)) {
+                if(!(context.abbrev_table = abbrev_table_create(sections.abbrev, abbrev_offset))) {
                         fprintf(stderr, "Could not create abbrev table\n");
                         return false;
                 }
