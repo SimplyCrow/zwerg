@@ -14,7 +14,7 @@ enum dwarf_unit_hdr_type {
         DW_UT_high_user = 0xff,
 };
 
-enum dwarf_tag {
+enum dwarf_tag_type {
         DW_TAG_array_type = 0x0001,
         DW_TAG_class_type = 0x0002,
         DW_TAG_entry_point = 0x0003,
@@ -208,7 +208,7 @@ enum dwarf_attribute_type {
         DW_AT_hi_user = 0x3fff,
 };
 
-enum dwarf_attribute_form_class {
+enum dwarf_attribute_form_class_type {
         DW_FORM_CLASS_UNKNOWN,
         DW_FORM_CLASS_INDIRECT,
         DW_FORM_CLASS_SEC_OFFSET, // addrptr, lineptr, loclist, loclistsptr, macptr, rnglist, rnglistsptr, stroffsetsptr
@@ -229,7 +229,7 @@ enum dwarf_attribute_form_class {
         DW_FORM_CLASS_STROFFSETSPTR,
 };
 
-enum dwarf_attribute_form {
+enum dwarf_attribute_form_type {
         DW_FORM_addr = 0x0001,
         DW_FORM_block2 = 0x0003,
         DW_FORM_block4 = 0x0004,
@@ -302,34 +302,17 @@ enum dwarf_attribute_form {
 #define DW_ATT_FORM_ARG_SIZE_STRING         (UINT64_MAX - 9)
 
 struct dwarf_attribute_form_info_mapping {
-        enum dwarf_attribute_form       form;
-        enum dwarf_attribute_form_class class;
+        enum dwarf_attribute_form_type       form;
+        enum dwarf_attribute_form_class_type class;
         uint64_t argument_size;
 };
 
 struct dwarf_attribute_form_info_mapping
-get_mapping_form_info(enum dwarf_attribute_form form);
+get_mapping_form_info(enum dwarf_attribute_form_type form);
 
-enum dwarf_attribute_form_class
-get_mapping_form_class(enum dwarf_attribute_form form);
+enum dwarf_attribute_form_class_type
+get_mapping_form_class(enum dwarf_attribute_form_type form);
 
-uint64_t get_mapping_form_argument_size(enum dwarf_attribute_form form);
-
-/* === POSSIBLE PARAMETERS TYPES FOR FORMS
- *
- *      - pointer (machine dependent on compilation unit header)
- *      - LSB128 (unsigned and signed)
- *      - 1- 2- 4- 8- 16-byte data
- *      - fixed ptr/offset (32 bit in DWARF 32, 64 bit for DWARF 64)
- *      - buffers (1 byte, 2, byte, 4 byte and LEB128 byte addresses)
- *      - void
- *      - etc.
- *
- *      GENERAL FORM
- *      1. void
- *      2. fixed n byte
- *      3. first LEB128 that specifices following size
- *      4. first LEB128 that specifices attribute form than following 1. 2. 3.
- * */
+uint64_t get_mapping_form_argument_size(enum dwarf_attribute_form_type form);
 
 #endif // LIBDWARF_ENCODING_H

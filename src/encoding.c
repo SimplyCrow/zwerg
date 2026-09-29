@@ -61,7 +61,7 @@ static const struct dwarf_attribute_form_info_mapping FORM_CLASS_MAPPING[] = {
 };
 
 struct dwarf_attribute_form_info_mapping
-get_mapping_form_info(enum dwarf_attribute_form form)
+get_mapping_form_info(enum dwarf_attribute_form_type form)
 {
         if(ARRAY_SIZE(FORM_CLASS_MAPPING) == 0) {
                 return FORM_CLASS_MAPPING[0];
@@ -87,13 +87,13 @@ get_mapping_form_info(enum dwarf_attribute_form form)
         return FORM_CLASS_MAPPING[0];
 }
 
-enum dwarf_attribute_form_class
-get_mapping_form_class(enum dwarf_attribute_form form)
+enum dwarf_attribute_form_class_type
+get_mapping_form_class(enum dwarf_attribute_form_type form)
 {
         return get_mapping_form_info(form).class;
 }
 
-uint64_t get_mapping_form_argument_size(enum dwarf_attribute_form form)
+uint64_t get_mapping_form_argument_size(enum dwarf_attribute_form_type form)
 {
         return get_mapping_form_info(form).argument_size;
 }
