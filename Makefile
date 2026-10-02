@@ -3,7 +3,7 @@ export CFLAGS := -Wall -Wextra -MMD -MP -g -gdwarf-5 -gstrict-dwarf -I$(realpath
 
 export DWARF_LIB_ARCHIVE = $(shell realpath libdwarf.a)
 
-LIB_SRCS := dwarf.c abbrev.c string_tables.c encoding.c bstream.c
+LIB_SRCS := dwarf.c abbrev.c string_tables.c encoding.c bstream.c die_tree.c form_parser.c
 LIB_OBJS := $(patsubst %.c,./src/%.o,$(LIB_SRCS))
 LIB_DEPS := $(patsubst %.c,./src/%.d,$(LIB_SRCS))
 
