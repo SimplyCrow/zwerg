@@ -33,6 +33,7 @@ uint64_t bstream_peek_u64(struct bstream_t *stream);
 
 uint8_t  bstream_u8(struct bstream_t *stream);
 uint16_t bstream_u16(struct bstream_t *stream);
+uint32_t bstream_u24(struct bstream_t *stream);
 uint32_t bstream_u32(struct bstream_t *stream);
 uint64_t bstream_u64(struct bstream_t *stream);
 

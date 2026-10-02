@@ -168,6 +168,14 @@ uint16_t bstream_u16(struct bstream_t *stream)
         return value;
 }
 
+uint32_t bstream_u24(struct bstream_t *stream)
+{
+        const uint32_t lower_value = bstream_peek_u16(stream);
+        const uint32_t higher_value = bstream_peek_u8(stream);
+        stream->pos += sizeof(lower_value) + sizeof(higher_value);
+        return (higher_value << 16) | lower_value;
+}
+
 uint32_t bstream_u32(struct bstream_t *stream)
 {
         const uint32_t value = bstream_peek_u32(stream);
