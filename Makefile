@@ -22,6 +22,7 @@ run-tests: tests libdwarf.a
 .PHONY: clean
 clean:
 	rm -f ./src/*.o
+	rm -f ./src/*.d
 	rm $(DWARF_LIB_ARCHIVE)
 	$(MAKE) --no-print-directory -C ./tests/general clean
 
