@@ -166,7 +166,7 @@ abbrev_table_create(
 }
 
 struct abbrev_entry_t *abbrev_table_get(
-                struct abbrev_table_t *table,
+                const struct abbrev_table_t *table,
                 uint64_t index
 )
 {
