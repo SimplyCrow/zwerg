@@ -1,3 +1,10 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+/*
+ *  dwarf form parsing
+ *
+ *  Copyright (C) 2026 Jonathan Kowalski <jonathan.kowalski2306@gmail.com>
+ */
+
 #include "form_parser.h"
 
 #include <stdlib.h>

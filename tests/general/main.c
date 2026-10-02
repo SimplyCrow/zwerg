@@ -1,3 +1,10 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+/*
+ *  General test of the dwarf library
+ *
+ *  Copyright (C) 2026 Jonathan Kowalski <jonathan.kowalski2306@gmail.com>
+ */
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>

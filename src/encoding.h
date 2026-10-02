@@ -1,3 +1,10 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+/*
+ *  dwarf encoding
+ *
+ *  Copyright (C) 2026 Jonathan Kowalski <jonathan.kowalski2306@gmail.com>
+ */
+
 #ifndef LIBDWARF_ENCODING_H
 #define LIBDWARF_ENCODING_H
 

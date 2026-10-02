@@ -1,3 +1,10 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+/*
+ *  leb128 encoding and decoding
+ *
+ *  Copyright (C) 2026 Jonathan Kowalski <jonathan.kowalski2306@gmail.com>
+ */
+
 #ifndef LIBDWARF_LEB128_H
 #define LIBDWARF_LEB128_H
 
