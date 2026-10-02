@@ -14,6 +14,7 @@ struct bstream_t {
 };
 
 bool bstream_init(struct bstream_t *stream, uint8_t *data, size_t length);
+bool bstream_init_sub(struct bstream_t *sub_stream, struct bstream_t *stream, size_t length);
 
 size_t   bstream_tell(struct bstream_t *stream);
 void     bstream_set_pos(struct bstream_t *stream, size_t new_pos);

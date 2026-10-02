@@ -50,6 +50,12 @@ bool bstream_init(struct bstream_t *stream, uint8_t *data, size_t length)
         return true;
 }
 
+bool bstream_init_sub(struct bstream_t *sub_stream, struct bstream_t *stream, size_t length)
+{
+        uint8_t *p = bstream_advance(stream, length);
+        return bstream_init(sub_stream, p, length);
+}
+
 size_t bstream_tell(struct bstream_t *stream)
 {
         return stream->pos;
