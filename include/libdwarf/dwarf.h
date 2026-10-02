@@ -6,6 +6,7 @@
 
 typedef uint64_t did_t;
 typedef uint64_t doff_t;
+typedef uint64_t darch_t;
 
 struct dwarf_buffer_t {
         uint8_t *data;
