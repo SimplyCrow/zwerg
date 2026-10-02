@@ -96,6 +96,9 @@ size_t bstream_trim_front(struct bstream_t *stream)
         va_end(params_length);
         va_end(params_format);
 
+        fflush(stdout);
+        fflush(stderr);
+
         longjmp(stream->err_return, 1);
         panic_exited_trap();
 }
