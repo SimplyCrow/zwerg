@@ -155,9 +155,7 @@ static void data8(struct parse_contrib_t *contrib, struct abbrev_attr_t)
 
 static void data16(struct parse_contrib_t *contrib, struct abbrev_attr_t)
 {
-        const uint64_t low_data  = bstream_u64(&contrib->sdies);
-        const uint64_t high_data = bstream_u64(&contrib->sdies);
-        contrib_debug_lprintf(contrib, "        -> data: 0x%016lx%016lx\n", high_data, low_data);
+        bstream_trap(&contrib->sdies, "Currently 128 bit integers are unsupported");
 }
 
 static void sec_offset(struct parse_contrib_t *contrib, struct abbrev_attr_t)
